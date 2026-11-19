@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f5f0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://calendrier.api.gouv.fr; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Lazy CRA — La paperasse, en moins pénible.</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="styles.css">
+  <script type="module" src="app.js"></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand" href="./" aria-label="Lazy CRA, accueil"><span class="brand-icon" aria-hidden="true">lc.</span> lazy cra<span class="brand-dot">.</span></a>
+    <span class="local-badge"><span aria-hidden="true"></span> Sans compte. Sans paperasse. Sans drama.</span>
+  </header>
+
+  <main>
+    <section class="intro">
+      <div><p class="eyebrow">LE RITUEL DE FIN DE MOIS, REVISITÉ</p>
+        <h1>Ton mois. Tes jours.<br><span>Et hop, un CRA.</span></h1>
+        <p class="intro-copy">Moins de tableur, plus de temps pour le café.<br>Renseigne tes journées, on s’occupe de la paperasse.</p>
+      </div>
+      <div class="intro-stamp" aria-hidden="true"><span>MISSION DU MOIS</span><strong>Ne pas y<br>passer le mois.</strong><span>✓ OBJECTIF ATTEIGNABLE</span></div>
+    </section>
+
+    <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+    <noscript>Active JavaScript pour remplir ton CRA et générer un PDF localement.</noscript>
+
+    <div class="workspace">
+      <aside class="settings">
+        <section class="card identity-card" aria-labelledby="identity-title">
+          <div class="section-heading"><span class="step">01</span><h2 id="identity-title">Les présentations</h2></div>
+          <div class="field-grid">
+            <label>Nom<input id="last-name" type="text" autocomplete="family-name" maxlength="70" placeholder="DUPONT" autocapitalize="characters"></label>
+            <label>Prénom<input id="first-name" type="text" autocomplete="given-name" maxlength="70" placeholder="Camille"></label>
+          </div>
+          <label class="checkbox-label"><input id="remember" type="checkbox"><span>Retenir mon nom et mon prénom <strong>dans ce navigateur uniquement</strong></span></label>
+          <div class="divider"></div>
+          <label class="field-label" for="logo-input">Le logo de ton entreprise <span class="optional">facultatif</span></label>
+          <div class="logo-box">
+            <img id="logo-preview" alt="Aperçu de ton logo" hidden>
+            <span id="logo-placeholder" aria-hidden="true">Ton logo prend<br>ses quartiers ici.</span>
+          </div>
+          <input id="logo-input" class="file-input" type="file" accept="image/png,image/jpeg,image/webp">
+          <label class="button button-outline logo-picker" for="logo-input" id="logo-picker-label">Choisir une image</label>
+          <button id="remove-logo" class="text-button" type="button" hidden>Supprimer le logo</button>
+          <p class="hint">PNG, JPEG ou WebP · 5 Mo max.<br>Image conservée localement, jamais envoyée ni publiée sur GitHub.</p>
+        </section>
+
+        <section class="privacy-note">
+          <span class="privacy-icon" aria-hidden="true">↳</span>
+          <div><h2>Ça reste entre toi et ton navigateur.</h2>
+            <p>Seuls le logo et, si tu le souhaites, ton identité sont enregistrés en local (localStorage). Les journées sont réinitialisées à chaque visite. Ni identité, ni logo, ni saisie ne sont envoyés. Seul le calendrier public est téléchargé depuis l’API officielle.</p>
+            <button type="button" id="clear-data" class="text-button">Effacer les données locales</button>
+          </div>
+        </section>
+      </aside>
+
+      <section class="card calendar-card" aria-labelledby="calendar-title">
+        <div class="calendar-top">
+          <div class="section-heading"><span class="step">02</span><h2 id="calendar-title">Le mois à la loupe</h2></div>
+          <span class="auto-tag">Calendrier réel, zéro calcul mental</span>
+        </div>
+        <div class="period-controls">
+          <button class="arrow-button" id="previous-month" type="button" aria-label="Mois précédent">←</button>
+          <label class="sr-only" for="month">Mois</label><select id="month"></select>
+          <label class="sr-only" for="year">Année</label><input id="year" type="number" min="1900" max="2199" step="1" required>
+          <button class="arrow-button" id="next-month" type="button" aria-label="Mois suivant">→</button>
+          <button class="text-button today-button" id="current-month" type="button">Mois actuel</button>
+        </div>
+        <p class="calendar-help">Les jours ouvrés sont préremplis en mission. À toi d’ajuster les pauses.</p>
+        <div class="calendar-source"><p id="calendar-status" role="status" aria-live="polite">Chargement des jours fériés officiels…</p><a href="https://calendrier.api.gouv.fr/jours-feries/" target="_blank" rel="noopener noreferrer">Source : API publique des jours fériés ↗</a><button type="button" class="text-button" id="retry-calendar" hidden>Réessayer le chargement</button></div>
+        <div class="legend"><span><i class="legend-work"></i> En mission</span><span><i class="legend-off"></i> Week-end / férié</span><span class="legend-fraction">½ journée ? C’est prévu.</span></div>
+        <div class="table-wrap">
+          <table class="days-table">
+            <caption class="sr-only">Saisie des jours facturés du mois sélectionné</caption>
+            <thead><tr><th scope="col">Jour</th><th scope="col">Au programme</th><th scope="col" class="mission-heading">Jours en mission</th></tr></thead>
+            <tbody id="days"></tbody>
+          </table>
+        </div>
+        <div class="calendar-footer"><p>France métropolitaine, hors Alsace-Moselle.<br>Fériés modifiables, y compris le lundi de Pentecôte.</p><button id="reset-month" type="button" class="text-button">Réinitialiser ce mois</button></div>
+      </section>
+
+      <aside class="summary-column">
+        <section class="card summary-card" aria-labelledby="summary-title">
+          <div class="section-heading"><span class="step">03</span><h2 id="summary-title">L’heure du bilan</h2></div>
+          <p id="summary-period" class="summary-period"></p>
+          <div class="big-total"><output id="worked-total">0</output><span>jours facturés</span></div>
+          <dl class="totals"><div><dt>Jours ouvrés du mois</dt><dd id="expected-total">0</dd></div><div><dt>Différentiel</dt><dd id="difference-total">0</dd></div></dl>
+          <p class="hint">Différentiel = jours ouvrés hors fériés − jours facturés. Les jours off ne sont pas facturés.</p>
+          <div class="summary-message" id="summary-message"></div>
+          <button id="export" class="button button-primary" type="button">↓ Télécharger mon PDF</button>
+          <p class="export-note">A4 · une page · prêt à envoyer<br>Le PDF aussi est généré sur ton appareil.</p>
+        </section>
+        <p class="side-note">La satisfaction d’une case cochée.<br>Sans ouvrir Excel.</p>
+      </aside>
+    </div>
+  </main>
+  <footer class="site-footer"><span>lazy cra. <span class="muted">Sérieux sur les jours. Moins sur le reste.</span></span><span>Fait pour les fins de mois tranquilles.</span></footer>
+</body>
+</html>

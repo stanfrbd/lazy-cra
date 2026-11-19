@@ -1,0 +1,20 @@
+# Local dependencies and caches
+node_modules/
+__pycache__/
+*.pyc
+*.log
+
+# Local configuration
+.env
+.env.*
+
+# Generated CRA exports and privately imported logos
+*.pdf
+*.png
+*.jpg
+*.jpeg
+*.webp
+
+# Operating system files
+.DS_Store
+Thumbs.db
